@@ -1,7 +1,8 @@
 #include "impls.h"
 #include <algorithm>
 
-float compute_iou(const cv::Rect& a, const cv::Rect& b) {
+float compute_iou(const cv::Rect& a, const cv::Rect& b) 
+{
     /**
      * 要求：
      *      有一个重要的指标叫做“交并比”，简称“IOU”，可以用于衡量
@@ -17,5 +18,23 @@ float compute_iou(const cv::Rect& a, const cv::Rect& b) {
      * 运行测试点，显示通过就行，不通过会告诉你哪一组矩形错了。
     */
     // IMPLEMENT YOUR CODE HERE
-    return 0.f;
+
+// 1. 计算交集矩形的坐标
+    int inter_left   = std::max(a.x, b.x);
+    int inter_top    = std::max(a.y, b.y);
+    int inter_right  = std::min(a.x + a.width,  b.x + b.width);
+    int inter_bottom = std::min(a.y + a.height, b.y + b.height);
+
+    // 2. 没有交集的情况
+    if (inter_right <= inter_left || inter_bottom <= inter_top) 
+    {
+        return 0.0f;
+    }
+
+    // 3. 计算交集与并集面积
+    float inter_area = static_cast<float>((inter_right - inter_left) * (inter_bottom - inter_top));
+    float union_area = static_cast<float>(a.area() + b.area() - inter_area);
+
+    // 4. 计算 IoU
+    return inter_area / union_area;
 }

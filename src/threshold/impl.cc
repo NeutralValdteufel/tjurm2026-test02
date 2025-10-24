@@ -1,7 +1,8 @@
 #include "impls.h"
 
 
-std::vector<cv::Mat> threshold(const cv::Mat& src, int threshold_value) {
+std::vector<cv::Mat> threshold(const cv::Mat& src, int threshold_value) 
+{
     /**
      * TODO: 将一个彩色图片转换为二值化图
      *  1. 将 src 转换成灰度图像
@@ -28,6 +29,12 @@ std::vector<cv::Mat> threshold(const cv::Mat& src, int threshold_value) {
     cv::Mat gray, dst;
 
     // TODO: 实现代码
+    // 1. 转换为灰度图
+    cv::cvtColor(src, gray, cv::COLOR_BGR2GRAY);
 
+    // 2. 二值化（小于 threshold_value 的设为 0，大于等于的设为 255）
+    cv::threshold(gray, dst, threshold_value, 255, cv::THRESH_BINARY);
+
+    // 返回灰度图和二值图
     return {gray, dst};
 }

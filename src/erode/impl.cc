@@ -1,7 +1,8 @@
 #include "impls.h"
 
 
-std::vector<cv::Mat> erode(const cv::Mat& src_erode, const cv::Mat& src_dilate) {
+std::vector<cv::Mat> erode(const cv::Mat& src_erode, const cv::Mat& src_dilate) 
+{
     /**
      * TODO: 先将图像转换为灰度图像, 然后二值化，然后进行腐蚀操作，具体内容：
      *  1. 将彩色图片 src_erode 转换为灰度图像
@@ -43,9 +44,29 @@ std::vector<cv::Mat> erode(const cv::Mat& src_erode, const cv::Mat& src_dilate) 
      *     2. dilate 之后的图像中，图中的小脚被消除了(类似答案中的样子)
      *     以上两个检查点需要自己检查，满足条件 则输入 p 通过, 否则输入 f 表示不通过
      */
-    cv::Mat dst_erode, dst_dilate;
 
     // TODO: 在这里实现你的代码
+    cv::Mat gray_erode, gray_dilate;
+    cv::Mat binary_erode, binary_dilate;
+    cv::Mat dst_erode, dst_dilate;
 
+    // 1. 转换为灰度图
+    cv::cvtColor(src_erode, gray_erode, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(src_dilate, gray_dilate, cv::COLOR_BGR2GRAY);
+
+    // 2. 二值化
+    cv::threshold(gray_erode, binary_erode, 50, 255, cv::THRESH_BINARY);
+    cv::threshold(gray_dilate, binary_dilate, 50, 255, cv::THRESH_BINARY);
+
+    // 3. 定义结构元素（核）
+    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+
+    // 4. 腐蚀操作（去除小白点）
+    cv::erode(binary_erode, dst_erode, kernel, cv::Point(-1, -1), 1);
+
+    // 5. 膨胀操作（去除小黑点 / 消除脚）
+    cv::dilate(binary_dilate, dst_dilate, kernel, cv::Point(-1, -1), 2);
+
+    // 6. 返回结果
     return {dst_erode, dst_dilate};
 }

@@ -2,7 +2,8 @@
 #include <unordered_map>
 
 
-std::unordered_map<int, cv::Rect> roi_color(const cv::Mat& input) {
+std::unordered_map<int, cv::Rect> roi_color(const cv::Mat& input) 
+{
     /**
      * INPUT: 一张彩色图片, 路径: opencv/assets/roi_color/input.png
      * OUTPUT: 一个 unordered_map, key 为颜色(Blue: 0, Green: 1, Red: 2), value 为对应颜色的矩形区域(cv::Rect)
@@ -30,6 +31,46 @@ std::unordered_map<int, cv::Rect> roi_color(const cv::Mat& input) {
      */
     std::unordered_map<int, cv::Rect> res;
     // IMPLEMENT YOUR CODE HERE
+
+    // 1. 转为灰度图
+    cv::Mat gray;
+    cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
+
+    // 2. 二值化（使用 OTSU 自适应阈值 + 反色）
+    cv::Mat binary;
+    cv::threshold(gray, binary, 0, 255, cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
+
+    // 3. 找轮廓
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(binary, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+    // 4. 按轮廓面积降序排列，避免小噪点干扰
+    std::sort(contours.begin(), contours.end(), [](const std::vector<cv::Point>& a, const std::vector<cv::Point>& b){
+        return cv::contourArea(a) > cv::contourArea(b);
+    });
+
+    // 5. 处理前三个大轮廓
+    int max_count = std::min(3, (int)contours.size());
+    for (int i = 0; i < max_count; ++i) 
+    {
+        cv::Rect rect = cv::boundingRect(contours[i]);
+        cv::Mat roi = input(rect);
+
+        // 计算 ROI 平均颜色
+        cv::Scalar mean_color = cv::mean(roi);
+
+        // 找到最大通道对应颜色
+        double max_val = std::max({mean_color[0], mean_color[1], mean_color[2]});
+        int color_type = -1;
+        if (max_val == mean_color[0]) color_type = 0; // 蓝
+        else if (max_val == mean_color[1]) color_type = 1; // 绿
+        else if (max_val == mean_color[2]) color_type = 2; // 红
+
+        if (color_type != -1) 
+        {
+            res[color_type] = rect;
+        }
+    }
 
     return res;
 }
